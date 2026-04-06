@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENUM · Espace Administrateur</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   VARIABLES & RESET
+═══════════════════════════════════════════ */
+:root {
+  --navy:       #050a1a;
+  --dark:       #080f22;
+  --card-bg:    #0b1428;
+  --blue-deep:  #0d1b5e;
+  --blue-mid:   #1a3a8f;
+  --blue-bright:#2563eb;
+  --cyan:       #00b4d8;
+  --cyan-light: #48cae4;
+  --white:      #e8f4ff;
+  --muted:      #7ea8c9;
+  --border:     rgba(0,180,216,0.18);
+  --glow:       rgba(0,180,216,0.15);
+
+  /* Role colors */
+  --president:  #f59e0b;
+  --vp:         #8b5cf6;
+  --sg:         #10b981;
+  --tresorier:  #ef4444;
+  --formation:  #06b6d4;
+  --comm:       #ec4899;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--navy);
+  color: var(--white);
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── CIRCUIT BG ─── */
+.circuit-bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  opacity: 0.035;
+  background-image:
+    linear-gradient(rgba(0,180,216,1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,180,216,1) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 15%, rgba(37,99,235,0.1) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 85%, rgba(0,180,216,0.08) 0%, transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ═══════════════════════════════════════════
+   LOGIN PAGE
+═══════════════════════════════════════════ */
+#loginPage {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 2rem;
+}
+.login-box {
+  background: rgba(8,15,34,0.95);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 3rem 2.5rem;
+  width: 100%; max-width: 440px;
+  position: relative; z-index: 1;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 60px rgba(0,180,216,0.07);
+  animation: loginAppear 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+@keyframes loginAppear {
+  from { opacity: 0; transform: translateY(30px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.login-logo {
+  text-align: center; margin-bottom: 2rem;
+}
+.login-logo img {
+  height: 64px;
+  filter: drop-shadow(0 0 16px rgba(0,180,216,0.5));
+  animation: floatLogo 3s ease-in-out infinite;
+}
+@keyframes floatLogo {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+.login-logo h1 {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700; font-size: 2rem;
+  letter-spacing: 4px; text-transform: uppercase;
+  background: linear-gradient(90deg, #2563eb, var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; margin-top: 0.8rem;
+}
+.login-logo p {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 3px;
+  color: var(--muted); text-transform: uppercase;
+  margin-top: 0.3rem;
+}
+.login-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem; letter-spacing: 2px;
+  color: var(--muted); text-transform: uppercase;
+  display: block; margin-bottom: 0.45rem;
+}
+.login-input, .login-select {
+  width: 100%;
+  background: rgba(5,10,26,0.8);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  color: var(--white);
+  font-family: 'Exo 2', sans-serif; font-size: 0.95rem;
+  outline: none; margin-bottom: 1.2rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.login-input:focus, .login-select:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(0,180,216,0.1);
+}
+.login-select option { background: #080f22; }
+.login-btn {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(90deg, #2563eb, var(--cyan));
+  border: none; border-radius: 8px;
+  color: var(--navy);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700; font-size: 1rem;
+  letter-spacing: 2px; text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 0 24px rgba(0,180,216,0.3);
+}
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 40px rgba(0,180,216,0.5);
+}
+.login-error {
+  display: none;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 6px;
+  padding: 0.8rem 1rem;
+  color: #fca5a5;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+.back-link {
+  display: block; text-align: center; margin-top: 1.5rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem; letter-spacing: 2px;
+  color: var(--muted); text-decoration: none;
+  transition: color 0.2s;
+}
+.back-link:hover { color: var(--cyan); }
+
+/* ═══════════════════════════════════════════
+   ADMIN LAYOUT
+═══════════════════════════════════════════ */
+#adminPage { display: none; min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: 260px;
+  background: rgba(8,15,34,0.97);
+  border-right: 1px solid var(--border);
+  z-index: 100;
+  display: flex; flex-direction: column;
+  transition: transform 0.3s;
+}
+.sidebar-logo {
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-logo img {
+  height: 36px;
+  filter: drop-shadow(0 0 8px rgba(0,180,216,0.4));
+}
+.sidebar-logo span {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700; font-size: 1.3rem;
+  letter-spacing: 3px; text-transform: uppercase;
+  background: linear-gradient(90deg, #2563eb, var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* User card in sidebar */
+.sidebar-user {
+  margin: 1.2rem 1.2rem 0.8rem;
+  background: rgba(13,27,94,0.3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex; align-items: center; gap: 0.8rem;
+}
+.sidebar-avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  font-size: 1rem; color: var(--navy);
+  flex-shrink: 0;
+}
+.sidebar-user-info { flex: 1; min-width: 0; }
+.sidebar-user-name {
+  font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  font-size: 0.95rem; letter-spacing: 0.5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sidebar-user-role {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem; letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Nav items */
+.sidebar-nav { flex: 1; padding: 0.5rem 0; overflow-y: auto; }
+.nav-section-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 3px;
+  color: rgba(126,168,201,0.4); text-transform: uppercase;
+  padding: 0.8rem 1.5rem 0.4rem;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 0.8rem;
+  padding: 0.7rem 1.5rem;
+  cursor: pointer; transition: all 0.2s;
+  border-left: 3px solid transparent;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600; font-size: 0.95rem;
+  letter-spacing: 0.5px; color: var(--muted);
+  user-select: none;
+}
+.nav-item:hover { color: var(--white); background: rgba(0,180,216,0.05); }
+.nav-item.active {
+  color: var(--white);
+  background: rgba(0,180,216,0.08);
+  border-left-color: var(--cyan);
+}
+.nav-item .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+.nav-item .nav-badge {
+  margin-left: auto;
+  background: var(--cyan);
+  color: var(--navy);
+  font-size: 0.65rem; font-weight: 700;
+  padding: 1px 7px; border-radius: 10px;
+}
+
+.sidebar-footer {
+  padding: 1rem 1.2rem;
+  border-top: 1px solid var(--border);
+}
+.logout-btn {
+  width: 100%; padding: 0.75rem;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 8px;
+  color: #fca5a5;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600; font-size: 0.9rem;
+  letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; transition: all 0.3s;
+}
+.logout-btn:hover {
+  background: rgba(239,68,68,0.15);
+  border-color: rgba(239,68,68,0.4);
+}
+
+/* ── MAIN CONTENT ── */
+.main-content {
+  margin-left: 260px;
+  min-height: 100vh;
+  padding: 2rem;
+  position: relative; z-index: 1;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+}
+.topbar-left h2 {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700; font-size: 1.6rem;
+  letter-spacing: 2px; text-transform: uppercase;
+  background: linear-gradient(90deg, #fff, var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.topbar-left p {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem; letter-spacing: 2px;
+  color: var(--muted); margin-top: 0.2rem;
+}
+.topbar-right { display: flex; align-items: center; gap: 0.8rem; }
+.notif-btn {
+  width: 38px; height: 38px;
+  background: rgba(13,27,94,0.4);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s; font-size: 1rem;
+  position: relative;
+}
+.notif-btn:hover { border-color: var(--cyan); background: rgba(0,180,216,0.08); }
+.notif-dot {
+  position: absolute; top: 6px; right: 6px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 6px var(--cyan);
+}
+.hamburger-admin {
+  display: none;
+  width: 38px; height: 38px;
+  background: rgba(13,27,94,0.4);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  align-items: center; justify-content: center;
+  cursor: pointer; flex-direction: column; gap: 5px;
+}
+.hamburger-admin span {
+  display: block; width: 18px; height: 1.5px; background: var(--cyan);
+}
+
+/* ── PANELS ── */
+.panel { display: none; animation: panelIn 0.4s cubic-bezier(0.16,1,0.3,1); }
+.panel.active { display: block; }
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════
+   COMPONENTS
+═══════════════════════════════════════════ */
+
+/* ── STATS ROW ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem; margin-bottom: 2rem;
+}
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.5rem;
+  position: relative; overflow: hidden;
+  transition: all 0.3s;
+}
+.stat-card:hover {
+  border-color: rgba(0,180,216,0.35);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
+}
+.stat-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+}
+.stat-card.c1::before { background: linear-gradient(90deg,#2563eb,var(--cyan)); }
+.stat-card.c2::before { background: linear-gradient(90deg,var(--cyan),#10b981); }
+.stat-card.c3::before { background: linear-gradient(90deg,#8b5cf6,#ec4899); }
+.stat-card.c4::before { background: linear-gradient(90deg,#f59e0b,#ef4444); }
+
+.stat-icon {
+  font-size: 1.6rem; margin-bottom: 0.8rem;
+}
+.stat-num {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700; font-size: 2.2rem;
+  background: linear-gradient(90deg,#60a5fa,var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; line-height: 1;
+}
+.stat-lbl {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 2px;
+  color: var(--muted); text-transform: uppercase;
+  margin-top: 0.3rem;
+}
+.stat-trend {
+  font-size: 0.75rem; margin-top: 0.5rem;
+}
+.trend-up { color: #34d399; }
+.trend-down { color: #f87171; }
+
+/* ── CARD ── */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.5rem;
+}
+.card-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700; font-size: 1.05rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  display: flex; align-items: center; gap: 0.6rem;
+}
+.card-title .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
+  flex-shrink: 0;
+}
+
+/* ── TWO COLUMNS ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; }
+
+/* ── TABLE ── */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); padding: 0.7rem 1rem; text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.data-table td {
+  padding: 0.85rem 1rem; font-size: 0.9rem; color: var(--muted);
+  border-bottom: 1px solid rgba(0,180,216,0.06);
+  vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(0,180,216,0.04); color: var(--white); }
+
+/* ── BADGE ── */
+.badge {
+  display: inline-block;
+  padding: 2px 10px; border-radius: 20px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase;
+  font-weight: 600;
+}
+.badge-green  { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+.badge-blue   { background: rgba(37,99,235,0.15);  color: #93c5fd; border: 1px solid rgba(37,99,235,0.3); }
+.badge-yellow { background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+.badge-red    { background: rgba(239,68,68,0.15);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+.badge-cyan   { background: rgba(0,180,216,0.15);  color: var(--cyan); border: 1px solid rgba(0,180,216,0.3); }
+
+/* ── FORM ELEMENTS ── */
+.f-group { margin-bottom: 1rem; }
+.f-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); display: block; margin-bottom: 0.4rem;
+}
+.f-input, .f-select, .f-textarea {
+  width: 100%;
+  background: rgba(5,10,26,0.7);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 0.8rem 1rem; color: var(--white);
+  font-family: 'Exo 2', sans-serif; font-size: 0.9rem;
+  outline: none; transition: all 0.3s;
+}
+.f-input:focus, .f-select:focus, .f-textarea:focus {
+  border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,180,216,0.1);
+}
+.f-textarea { resize: vertical; min-height: 100px; }
+.f-select option { background: #080f22; }
+.f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 0.7rem 1.5rem;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700; font-size: 0.88rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  border-radius: 8px; border: none; cursor: pointer;
+  transition: all 0.25s; display: inline-flex;
+  align-items: center; gap: 6px;
+}
+.btn-primary {
+  background: linear-gradient(90deg, #2563eb, var(--cyan));
+  color: var(--navy);
+  box-shadow: 0 0 20px rgba(0,180,216,0.2);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0,180,216,0.4); }
+.btn-ghost {
+  background: transparent; color: var(--cyan);
+  border: 1px solid rgba(0,180,216,0.3);
+}
+.btn-ghost:hover { background: rgba(0,180,216,0.08); border-color: var(--cyan); }
+.btn-danger {
+  background: rgba(239,68,68,0.1); color: #fca5a5;
+  border: 1px solid rgba(239,68,68,0.25);
+}
+.btn-danger:hover { background: rgba(239,68,68,0.2); }
+.btn-sm { padding: 0.4rem 0.9rem; font-size: 0.78rem; }
+
+/* ── PROGRESS BAR ── */
+.progress-bar {
+  background: rgba(0,180,216,0.1); border-radius: 4px; height: 6px;
+  overflow: hidden; margin-top: 0.4rem;
+}
+.progress-fill {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, #2563eb, var(--cyan));
+  transition: width 1s ease;
+}
+
+/* ── ACTIVITY FEED ── */
+.feed-item {
+  display: flex; gap: 0.9rem; align-items: flex-start;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid rgba(0,180,216,0.06);
+}
+.feed-item:last-child { border-bottom: none; }
+.feed-dot {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: rgba(0,180,216,0.1);
+  border: 1px solid rgba(0,180,216,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem; flex-shrink: 0;
+}
+.feed-text { flex: 1; }
+.feed-text strong {
+  display: block; font-family: 'Rajdhani', sans-serif;
+  font-weight: 600; font-size: 0.92rem; color: var(--white);
+  margin-bottom: 0.15rem;
+}
+.feed-text span { font-size: 0.8rem; color: var(--muted); }
+.feed-time {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem; letter-spacing: 1px; color: rgba(126,168,201,0.5);
+  flex-shrink: 0; margin-top: 2px;
+}
+
+/* ── ROLE HEADER STRIPE ── */
+.role-stripe {
+  border-radius: 12px; padding: 1.5rem 2rem;
+  display: flex; align-items: center; gap: 1.2rem;
+  margin-bottom: 1.5rem;
+  position: relative; overflow: hidden;
+}
+.role-stripe::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.04), transparent);
+}
+.role-stripe-icon { font-size: 2.2rem; }
+.role-stripe-info h3 {
+  font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  font-size: 1.4rem; letter-spacing: 2px; text-transform: uppercase;
+}
+.role-stripe-info p {
+  font-size: 0.85rem; opacity: 0.8; margin-top: 0.2rem;
+}
+
+/* ── CALENDAR ── */
+.mini-cal { }
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7,1fr);
+  gap: 4px; margin-top: 0.8rem;
+}
+.cal-day-lbl {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 1px; color: var(--muted);
+  text-transform: uppercase; text-align: center; padding: 0.3rem 0;
+}
+.cal-day {
+  width: 100%; aspect-ratio: 1; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.78rem; cursor: pointer; transition: all 0.2s;
+  color: var(--muted);
+}
+.cal-day:hover { background: rgba(0,180,216,0.12); color: var(--white); }
+.cal-day.today {
+  background: linear-gradient(135deg, #2563eb, var(--cyan));
+  color: var(--navy); font-weight: 700;
+}
+.cal-day.event {
+  background: rgba(0,180,216,0.12);
+  border: 1px solid rgba(0,180,216,0.3); color: var(--cyan);
+}
+.cal-day.empty { pointer-events: none; }
+
+/* ── NOTIFICATION TOAST ── */
+#toast {
+  position: fixed; bottom: 2rem; right: 2rem;
+  background: rgba(8,15,34,0.97); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem 1.4rem;
+  display: flex; align-items: center; gap: 0.8rem;
+  z-index: 9999; max-width: 340px;
+  transform: translateY(120%); transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+#toast.show { transform: translateY(0); }
+#toast .toast-icon { font-size: 1.3rem; }
+#toast .toast-msg { font-size: 0.88rem; color: var(--white); }
+#toast .toast-border {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--cyan); border-radius: 10px 0 0 10px;
+}
+
+/* ── CHART BAR ── */
+.chart-bars {
+  display: flex; align-items: flex-end; gap: 6px;
+  height: 120px; padding-top: 1rem;
+}
+.bar-col {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 4px;
+}
+.bar-fill {
+  width: 100%; border-radius: 4px 4px 0 0;
+  background: linear-gradient(0deg, #2563eb, var(--cyan));
+  transition: height 1s cubic-bezier(0.16,1,0.3,1);
+  min-height: 4px;
+}
+.bar-lbl {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem; letter-spacing: 1px;
+  color: var(--muted); text-transform: uppercase;
+}
+
+/* ── MEMBER LIST ── */
+.member-row {
+  display: flex; align-items: center; gap: 0.9rem;
+  padding: 0.7rem 0; border-bottom: 1px solid rgba(0,180,216,0.06);
+}
+.member-row:last-child { border-bottom: none; }
+.member-av {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, var(--cyan));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  font-size: 0.85rem; color: var(--navy); flex-shrink: 0;
+}
+.member-info { flex: 1; min-width: 0; }
+.member-info strong {
+  display: block; font-family: 'Rajdhani', sans-serif;
+  font-size: 0.92rem; color: var(--white);
+}
+.member-info small {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem; letter-spacing: 1px; color: var(--muted);
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .sidebar {
+    transform: translateX(-100%);
+    z-index: 300;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .main-content { margin-left: 0; padding: 1.5rem 1rem; }
+  .hamburger-admin { display: flex; }
+  .two-col, .three-col { grid-template-columns: 1fr; }
+  .f-row { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .stats-row { grid-template-columns: 1fr; }
+  .login-box { padding: 2rem 1.5rem; }
+}
+
+/* Sidebar overlay */
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6); z-index: 299;
+}
+.sidebar-overlay.show { display: block; }
+</style>
+</head>
+<body>
+<div class="circuit-bg"></div>
+
+<!-- ═══════ LOGIN ═══════ -->
+<div id="loginPage">
+  <div class="login-box">
+    <div class="login-logo">
+      <img src="Logo_Senum_tr.png" alt="SENUM" onerror="this.style.display='none'">
+      <h1>SENUM</h1>
+      <p>Espace Administrateur · Bureau</p>
+    </div>
+    <div class="login-error" id="loginError">Identifiants incorrects. Réessayez.</div>
+    <label class="login-label">Rôle / Poste</label>
+    <select class="login-select" id="roleSelect">
+      <option value="">— Sélectionner votre poste —</option>
+      <option value="president">👑 Président(e)</option>
+      <option value="vp">🔷 Vice-Président(e)</option>
+      <option value="sg">📋 Secrétaire Général(e)</option>
+      <option value="tresorier">💰 Trésorier(e)</option>
+      <option value="formation">🎓 Responsable Formation</option>
+      <option value="comm">📣 Responsable Communication</option>
+    </select>
+    <label class="login-label">Mot de passe</label>
+    <input class="login-input" type="password" id="pwInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">🔐 &nbsp;Accéder au tableau de bord</button>
+    <a class="back-link" href="index.html">← Retour au site public</a>
+  </div>
+</div>
+
+<!-- ═══════ ADMIN ═══════ -->
+<div id="adminPage">
+  <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="Logo_Senum_tr.png" alt="SENUM" onerror="this.style.display='none'">
+      <span>SENUM</span>
+    </div>
+    <div class="sidebar-user" id="sidebarUser">
+      <div class="sidebar-avatar" id="sidebarAvatar"></div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebarName"></div>
+        <div class="sidebar-user-role" id="sidebarRole"></div>
+      </div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="doLogout()">⏻ &nbsp;Déconnexion</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="hamburger-admin" onclick="toggleSidebar()">
+          <span></span><span></span><span></span>
+        </div>
+        <h2 id="topbarTitle">Tableau de bord</h2>
+        <p id="topbarSub">Bienvenue dans votre espace</p>
+      </div>
+      <div class="topbar-right">
+        <div class="notif-btn" onclick="showToast('Aucune nouvelle notification','ℹ️')">
+          🔔<div class="notif-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANELS -->
+    <div id="panelsContainer"></div>
+  </main>
+</div>
+
+<!-- TOAST -->
+<div id="toast">
+  <div class="toast-border"></div>
+  <div class="toast-icon" id="toastIcon">✅</div>
+  <div class="toast-msg" id="toastMsg"></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════ */
+const ROLES = {
+  president: {
+    label: 'Président(e)',
+    emoji: '👑',
+    color: '#f59e0b',
+    gradient: 'linear-gradient(135deg,rgba(245,158,11,0.15),rgba(245,158,11,0.05))',
+    border: 'rgba(245,158,11,0.3)',
+    pwd: 'president2024',
+    nav: [
+      { id:'overview',   icon:'🏠', label:'Vue d\'ensemble' },
+      { id:'membres',    icon:'👥', label:'Membres',    badge:'52' },
+      { id:'projets',    icon:'📁', label:'Projets' },
+      { id:'reunions',   icon:'📅', label:'Réunions' },
+      { id:'rapports',   icon:'📊', label:'Rapports' },
+      { id:'partenaires',icon:'🤝', label:'Partenaires' },
+    ]
+  },
+  vp: {
+    label: 'Vice-Président(e)',
+    emoji: '🔷',
+    color: '#8b5cf6',
+    gradient: 'linear-gradient(135deg,rgba(139,92,246,0.15),rgba(139,92,246,0.05))',
+    border: 'rgba(139,92,246,0.3)',
+    pwd: 'vp2024',
+    nav: [
+      { id:'overview',  icon:'🏠', label:'Vue d\'ensemble' },
+      { id:'projets',   icon:'📁', label:'Projets' },
+      { id:'equipes',   icon:'👥', label:'Équipes' },
+      { id:'planning',  icon:'🗓️', label:'Planning' },
+      { id:'rapports',  icon:'📊', label:'Rapports' },
+    ]
+  },
+  sg: {
+    label: 'Secrétaire Général(e)',
+    emoji: '📋',
+    color: '#10b981',
+    gradient: 'linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.05))',
+    border: 'rgba(16,185,129,0.3)',
+    pwd: 'sg2024',
+    nav: [
+      { id:'overview',   icon:'🏠', label:'Vue d\'ensemble' },
+      { id:'courriers',  icon:'✉️', label:'Courriers',  badge:'3' },
+      { id:'comptes',    icon:'📄', label:'Comptes rendus' },
+      { id:'archives',   icon:'🗃️', label:'Archives' },
+      { id:'membres',    icon:'👥', label:'Membres' },
+      { id:'planning',   icon:'📅', label:'Planning' },
+    ]
+  },
+  tresorier: {
+    label: 'Trésorier(e)',
+    emoji: '💰',
+    color: '#ef4444',
+    gradient: 'linear-gradient(135deg,rgba(239,68,68,0.15),rgba(239,68,68,0.05))',
+    border: 'rgba(239,68,68,0.3)',
+    pwd: 'tresor2024',
+    nav: [
+      { id:'overview',  icon:'🏠', label:'Vue d\'ensemble' },
+      { id:'budget',    icon:'💳', label:'Budget' },
+      { id:'depenses',  icon:'📉', label:'Dépenses' },
+      { id:'recettes',  icon:'📈', label:'Recettes' },
+      { id:'rapports',  icon:'📊', label:'Rapports' },
+    ]
+  },
+  formation: {
+    label: 'Resp. Formation',
+    emoji: '🎓',
+    color: '#06b6d4',
+    gradient: 'linear-gradient(135deg,rgba(6,182,212,0.15),rgba(6,182,212,0.05))',
+    border: 'rgba(6,182,212,0.3)',
+    pwd: 'formation2024',
+    nav: [
+      { id:'overview',  icon:'🏠', label:'Vue d\'ensemble' },
+      { id:'ateliers',  icon:'🛠️', label:'Ateliers',   badge:'2' },
+      { id:'modules',   icon:'📚', label:'Modules' },
+      { id:'inscrits',  icon:'👤', label:'Inscrits' },
+      { id:'ressources',icon:'📂', label:'Ressources' },
+    ]
+  },
+  comm: {
+    label: 'Resp. Communication',
+    emoji: '📣',
+    color: '#ec4899',
+    gradient: 'linear-gradient(135deg,rgba(236,72,153,0.15),rgba(236,72,153,0.05))',
+    border: 'rgba(236,72,153,0.3)',
+    pwd: 'comm2024',
+    nav: [
+      { id:'overview',   icon:'🏠', label:'Vue d\'ensemble' },
+      { id:'publications',icon:'📰', label:'Publications',badge:'5' },
+      { id:'reseaux',    icon:'📲', label:'Réseaux sociaux' },
+      { id:'medias',     icon:'📸', label:'Médiathèque' },
+      { id:'campagnes',  icon:'🎯', label:'Campagnes' },
+    ]
+  }
+};
+
+let currentRole = null;
+let currentPanel = 'overview';
+
+/* ═══════════════════════════════════════════
+   AUTH
+═══════════════════════════════════════════ */
+function doLogin() {
+  const role = document.getElementById('roleSelect').value;
+  const pw   = document.getElementById('pwInput').value;
+  const err  = document.getElementById('loginError');
+  if (!role) { err.style.display='block'; err.textContent='Veuillez sélectionner votre poste.'; return; }
+  if (pw !== ROLES[role].pwd) { err.style.display='block'; err.textContent='Mot de passe incorrect.'; return; }
+  err.style.display = 'none';
+  currentRole = role;
+  buildAdmin(role);
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('adminPage').style.display = 'block';
+  showToast(`Bienvenue, ${ROLES[role].label} !`, ROLES[role].emoji);
+}
+
+function doLogout() {
+  currentRole = null;
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('adminPage').style.display = 'none';
+  document.getElementById('pwInput').value = '';
+  document.getElementById('roleSelect').value = '';
+}
+
+/* ═══════════════════════════════════════════
+   BUILD ADMIN
+═══════════════════════════════════════════ */
+function buildAdmin(role) {
+  const r = ROLES[role];
+
+  // Sidebar user
+  document.getElementById('sidebarAvatar').textContent = r.emoji;
+  document.getElementById('sidebarAvatar').style.background = `linear-gradient(135deg,${r.color}44,${r.color}22)`;
+  document.getElementById('sidebarAvatar').style.border = `2px solid ${r.color}55`;
+  document.getElementById('sidebarAvatar').style.webkitTextFillColor = r.color;
+  document.getElementById('sidebarName').textContent = r.label;
+  document.getElementById('sidebarRole').textContent = 'BUREAU · SENUM';
+  document.getElementById('sidebarRole').style.color = r.color;
+
+  // Sidebar nav
+  const nav = document.getElementById('sidebarNav');
+  nav.innerHTML = `<div class="nav-section-label">Navigation</div>`;
+  r.nav.forEach(item => {
+    nav.innerHTML += `
+      <div class="nav-item ${item.id === 'overview' ? 'active' : ''}"
+           onclick="switchPanel('${item.id}',this)">
+        <span class="nav-icon">${item.icon}</span>
+        ${item.label}
+        ${item.badge ? `<span class="nav-badge">${item.badge}</span>` : ''}
+      </div>`;
+  });
+  nav.innerHTML += `<div class="nav-section-label" style="margin-top:1rem;">Système</div>`;
+  nav.innerHTML += `<div class="nav-item" onclick="showToast('Paramètres bientôt disponibles','⚙️')">
+    <span class="nav-icon">⚙️</span>Paramètres</div>`;
+  nav.innerHTML += `<div class="nav-item" onclick="window.open('index.html','_blank')">
+    <span class="nav-icon">🌐</span>Voir le site</div>`;
+
+  // Topbar
+  document.getElementById('topbarTitle').textContent = r.label;
+  document.getElementById('topbarSub').textContent = `Tableau de bord · ${new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}`;
+
+  // Build all panels
+  buildPanels(role);
+  switchPanelById('overview');
+}
+
+function switchPanel(id, el) {
+  document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  switchPanelById(id);
+  closeSidebar();
+}
+
+function switchPanelById(id) {
+  currentPanel = id;
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  const p = document.getElementById('panel_' + id);
+  if (p) p.classList.add('active');
+}
+
+/* ═══════════════════════════════════════════
+   BUILD PANELS
+═══════════════════════════════════════════ */
+function buildPanels(role) {
+  const r = ROLES[role];
+  const container = document.getElementById('panelsContainer');
+  container.innerHTML = '';
+
+  // Always build overview
+  container.appendChild(buildOverview(role));
+
+  // Role-specific panels
+  r.nav.slice(1).forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'panel';
+    div.id = 'panel_' + item.id;
+    div.innerHTML = buildPanelContent(role, item.id, item.label);
+    container.appendChild(div);
+  });
+}
+
+function buildOverview(role) {
+  const r = ROLES[role];
+  const div = document.createElement('div');
+  div.className = 'panel active';
+  div.id = 'panel_overview';
+
+  const stripeContent = {
+    president:  { desc:'Coordonnez les activités et pilotez la stratégie globale du club.' },
+    vp:         { desc:'Supervisez les projets et assurez la cohésion des équipes.' },
+    sg:         { desc:'Gérez l\'administration, les courriers et les archives officielles.' },
+    tresorier:  { desc:'Suivez le budget, les recettes et les dépenses du club.' },
+    formation:  { desc:'Planifiez et animez les ateliers et formations numériques.' },
+    comm:       { desc:'Pilotez la communication et la présence digitale du club.' },
+  };
+
+  div.innerHTML = `
+    <div class="role-stripe" style="background:${r.gradient};border:1px solid ${r.border};">
+      <div class="role-stripe-icon">${r.emoji}</div>
+      <div class="role-stripe-info">
+        <h3 style="color:${r.color};">${r.label}</h3>
+        <p>${stripeContent[role].desc}</p>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card c1">
+        <div class="stat-icon">👥</div>
+        <div class="stat-num">52</div>
+        <div class="stat-lbl">Membres actifs</div>
+        <div class="stat-trend trend-up">↑ +3 ce mois</div>
+      </div>
+      <div class="stat-card c2">
+        <div class="stat-icon">📅</div>
+        <div class="stat-num">8</div>
+        <div class="stat-lbl">Événements planifiés</div>
+        <div class="stat-trend trend-up">↑ 2 cette semaine</div>
+      </div>
+      <div class="stat-card c3">
+        <div class="stat-icon">✅</div>
+        <div class="stat-num">14</div>
+        <div class="stat-lbl">Projets actifs</div>
+        <div class="stat-trend trend-up">↑ 5 terminés</div>
+      </div>
+      <div class="stat-card c4">
+        <div class="stat-icon">💬</div>
+        <div class="stat-num">3</div>
+        <div class="stat-lbl">Messages non lus</div>
+        <div class="stat-trend" style="color:var(--muted);">→ À traiter</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><div class="dot"></div>Activité récente</div>
+        </div>
+        <div class="feed-item">
+          <div class="feed-dot">📸</div>
+          <div class="feed-text"><strong>Atelier Photo organisé</strong><span>25 participants — succès total</span></div>
+          <div class="feed-time">Hier</div>
+        </div>
+        <div class="feed-item">
+          <div class="feed-dot">👤</div>
+          <div class="feed-text"><strong>3 nouveaux membres</strong><span>Inscriptions validées</span></div>
+          <div class="feed-time">2j</div>
+        </div>
+        <div class="feed-item">
+          <div class="feed-dot">🤝</div>
+          <div class="feed-text"><strong>Partenariat confirmé</strong><span>Médias locaux · Convention signée</span></div>
+          <div class="feed-time">4j</div>
+        </div>
+        <div class="feed-item">
+          <div class="feed-dot">📄</div>
+          <div class="feed-text"><strong>Rapport mensuel publié</strong><span>Disponible dans les archives</span></div>
+          <div class="feed-time">1 sem.</div>
+        </div>
+        <div class="feed-item">
+          <div class="feed-dot">🎓</div>
+          <div class="feed-text"><strong>Formation numérique</strong><span>Canva & Design · 18 présents</span></div>
+          <div class="feed-time">2 sem.</div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:1.5rem;">
+          <div class="card-header">
+            <div class="card-title"><div class="dot"></div>Prochains événements</div>
+          </div>
+          ${buildMiniCal()}
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><div class="dot"></div>Progression des objectifs</div>
+          </div>
+          ${buildProgress()}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot"></div>Statistiques mensuelles</div>
+        <span class="badge badge-cyan">2024</span>
+      </div>
+      ${buildBarChart()}
+    </div>
+  `;
+  return div;
+}
+
+function buildPanelContent(role, panelId, label) {
+  // Generic & specialized panels
+  const specials = {
+    membres:     buildMembresPanel,
+    budget:      buildBudgetPanel,
+    depenses:    buildDepensesPanel,
+    recettes:    buildRecettesPanel,
+    ateliers:    buildAteliersPanel,
+    publications:buildPublicationsPanel,
+    reseaux:     buildReseauxPanel,
+    courriers:   buildCourriersPanel,
+    projets:     buildProjetsPanel,
+    comptes:     buildComptesPanel,
+  };
+  if (specials[panelId]) return specials[panelId](role);
+  return buildGenericPanel(label, panelId);
+}
+
+/* ── GENERIC PANEL ── */
+function buildGenericPanel(label, id) {
+  return `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot"></div>${label}</div>
+        <button class="btn btn-primary btn-sm" onclick="showToast('Fonctionnalité en cours de développement','🛠️')">+ Nouveau</button>
+      </div>
+      <p style="color:var(--muted);font-size:0.9rem;line-height:1.7;">
+        Cette section est dédiée à la gestion de <strong style="color:var(--cyan)">${label.toLowerCase()}</strong>.
+        Les fonctionnalités complètes seront disponibles prochainement.
+      </p>
+      <div style="display:flex;gap:0.8rem;margin-top:1.2rem;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Exportation lancée','📄')">📄 Exporter</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Synchronisation effectuée','🔄')">🔄 Synchroniser</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Rapport généré','📊')">📊 Rapport</button>
+      </div>
+    </div>
+    ${buildPlaceholderTable(label)}
+  `;
+}
+
+function buildPlaceholderTable(label) {
+  return `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot"></div>Liste ${label}</div>
+        <input class="f-input" style="max-width:200px;padding:0.45rem 0.8rem;font-size:0.8rem;" placeholder="🔍 Rechercher...">
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr><th>Référence</th><th>Titre</th><th>Date</th><th>Statut</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>#001</td><td>Élément A</td><td>01/04/2024</td><td><span class="badge badge-green">Actif</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Ouvert','📂')">Voir</button></td></tr>
+          <tr><td>#002</td><td>Élément B</td><td>15/03/2024</td><td><span class="badge badge-yellow">En cours</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Ouvert','📂')">Voir</button></td></tr>
+          <tr><td>#003</td><td>Élément C</td><td>10/03/2024</td><td><span class="badge badge-blue">Planifié</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Ouvert','📂')">Voir</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+/* ── MEMBRES PANEL ── */
+function buildMembresPanel() {
+  const members = [
+    { initials:'AM', name:'Aminata M.', role:'Présidente',      status:'green',  join:'Jan 2023' },
+    { initials:'OD', name:'Omar D.',    role:'Vice-Président',   status:'green',  join:'Jan 2023' },
+    { initials:'FK', name:'Fatou K.',   role:'Secrétaire Gén.', status:'green',  join:'Fév 2023' },
+    { initials:'MS', name:'Moussa S.',  role:'Trésorier',        status:'green',  join:'Mar 2023' },
+    { initials:'KN', name:'Khady N.',   role:'Resp. Formation',  status:'green',  join:'Mar 2023' },
+    { initials:'IB', name:'Ibrahima B.',role:'Resp. Comm.',      status:'yellow', join:'Avr 2023' },
+    { initials:'AB', name:'Aïssatou B.',role:'Membre actif',     status:'green',  join:'Mai 2023' },
+    { initials:'MT', name:'Mamadou T.', role:'Membre actif',     status:'green',  join:'Jun 2023' },
+    { initials:'SD', name:'Sokhna D.',  role:'Membre actif',     status:'blue',   join:'Sep 2023' },
+    { initials:'YF', name:'Yaye F.',    role:'Nouveau membre',   status:'yellow', join:'Jan 2024' },
+  ];
+  const rows = members.map(m => `
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:0.7rem;">
+        <div class="member-av" style="width:32px;height:32px;font-size:0.75rem;">${m.initials}</div>
+        ${m.name}
+      </div></td>
+      <td>${m.role}</td>
+      <td>${m.join}</td>
+      <td><span class="badge badge-${m.status}">${m.status==='green'?'Actif':m.status==='yellow'?'En attente':'Inactif'}</span></td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Profil ouvert','👤')">Profil</button>
+        <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="showToast('Action enregistrée','⚠️')">Retirer</button>
+      </td>
+    </tr>`).join('');
+
+  return `
+    <div class="stats-row">
+      <div class="stat-card c1"><div class="stat-icon">👥</div><div class="stat-num">52</div><div class="stat-lbl">Total membres</div></div>
+      <div class="stat-card c2"><div class="stat-icon">✅</div><div class="stat-num">44</div><div class="stat-lbl">Membres actifs</div></div>
+      <div class="stat-card c3"><div class="stat-icon">⏳</div><div class="stat-num">5</div><div class="stat-lbl">En attente</div></div>
+      <div class="stat-card c4"><div class="stat-icon">🆕</div><div class="stat-num">3</div><div class="stat-lbl">Nouveaux (mois)</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot"></div>Liste des membres</div>
+        <div style="display:flex;gap:0.6rem;">
+          <input class="f-input" style="max-width:180px;padding:0.45rem 0.8rem;font-size:0.8rem;" placeholder="🔍 Rechercher...">
+          <button class="btn btn-primary btn-sm" onclick="showToast('Formulaire d\'ajout ouvert','➕')">+ Ajouter</button>
+        </div>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Nom</th><th>Rôle</th><th>Adhésion</th><th>Statut</th><th>Actions</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title"><div class="dot"></div>Ajouter un membre</div></div>
+      <div class="f-row">
+        <div class="f-group"><label class="f-label">Prénom & Nom</label><input class="f-input" placeholder="Ex: Aminata Diallo"></div>
+        <div class="f-group"><label class="f-label">Email</label><input class="f-input" type="email" placeholder="email@exemple.com"></div>
+      </div>
+      <div class="f-row">
+        <div class="f-group"><label class="f-label">Téléphone</label><input class="f-input" placeholder="+221 XX XXX XX XX"></div>
+        <div class="f-group"><label class="f-label">Rôle</label>
+          <select class="f-select"><option>Membre actif</option><option>Bureau</option><option>Observateur</option></select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="showToast('Membre ajouté avec succès !','✅')">Enregistrer le membre</button>
+    </div>
+  `;
+}
+
+/* ── BUDGET PANEL ── */
+function buildBudgetPanel() {
+  return `
+    <div class="stats-row">
+      <div class="stat-card c1"><div class="stat-icon">💵</div><div class="stat-num">485k</div><div class="stat-lbl">Budget total (FCFA)</div></div>
+      <div class="stat-card c2"><div class="stat-icon">📈</div><div class="stat-num">320k</div><div class="stat-lbl">Recettes</div><div class="stat-trend trend-up">↑ +12%</div></div>
+      <div class="stat-card c3"><div class="stat-icon">📉</div><div class="stat-num">165k</div><div class="stat-lbl">Dépenses</div><div class="stat-trend trend-down">↓ -5%</div></div>
+      <div class="stat-card c4"><div class="stat-icon">🏦</div><div class="stat-num">155k</div><div class="stat-lbl">Solde restant</div></div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><div class="card-title"><div class="dot"></div>Répartition du budget</div></div>
+        ${[
+          { lbl:'Ateliers & Formations', pct:35, color:'var(--cyan)' },
+          { lbl:'Communication & Médias', pct:25, color:'#ec4899' },
+          { lbl:'Matériel & Équipements', pct:20, color:'#8b5cf6' },
+          { lbl:'Événements & Sorties', pct:12, color:'#f59e0b' },
+          { lbl:'Frais administratifs', pct:8, color:'#10b981' },
+        ].map(b => `
+          <div style="margin-bottom:1rem;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;">
+              <span style="font-size:0.85rem;color:var(--muted);">${b.lbl}</span>
+              <span style="font-family:'Share Tech Mono',monospace;font-size:0.75rem;color:${b.color};">${b.pct}%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${b.pct}%;background:linear-gradient(90deg,${b.color}88,${b.color});"></div></div>
+          </div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title"><div class="dot"></div>Dernières transactions</div></div>
+        <table class="data-table">
+          <thead><tr><th>Date</th><th>Description</th><th>Montant</th><th>Type</th></tr></thead>
+          <tbody>
+            <tr><td>05/04</td><td>Cotisations membres</td><td style="color:#34d399;">+25 000</td><td><span class="badge badge-green">Recette</span></td></tr>
+            <tr><td>03/04</td><td>Achat matériel photo</td><td style="color:#f87171;">-45 000</td><td><span class="badge badge-red">Dépense</span></td></tr>
+            <tr><td>01/04</td><td>Subvention mairie</td><td style="color:#34d399;">+100 000</td><td><span class="badge badge-green">Recette</span></td></tr>
+            <tr><td>28/03</td><td>Location salle atelier</td><td style="color:#f87171;">-15 000</td><td><span class="badge badge-red">Dépense</span></td></tr>
+            <tr><td>25/03</td><td>Vente produits club</td><td style="color:#34d399;">+18 500</td><td><span class="badge badge-green">Recette</span></td></tr>
+          </tbody>
+        </table>
+        <button class="btn btn-ghost btn-sm" style="margin-top:1rem;" onclick="showToast('Transaction ajoutée','💰')">+ Nouvelle transaction</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ── ATELIERS PANEL ── */
+function buildAteliersPanel() {
+  return `
+    <div class="stats-row">
+      <div class="stat-card c1"><div class="stat-icon">🛠️</div><div class="stat-num">18</div><div class="stat-lbl">Ateliers réalisés</div></div>
+      <div class="stat-card c2"><div class="stat-icon">📅</div><div class="stat-num">2</div><div class="stat-lbl">À venir</div></div>
+      <div class="stat-card c3"><div class="stat-icon">👥</div><div class="stat-num">340</div><div class="stat-lbl">Participants total</div></div>
+      <div class="stat-card c4"><div class="stat-icon">⭐</div><div class="stat-num">4.7</div><div class="stat-lbl">Note moyenne</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title"><div class="dot"></div>Prochains ateliers</div>
+        <button class="btn btn-primary btn-sm" onclick="showToast('Formulaire ouvert','🛠️')">+ Créer</button>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Atelier</th><th>Date</th><th>Formateur</th><th>Inscrits</th><th>Statut</th><th></th></tr></thead>
+        <tbody>
+          <tr><td><strong>Photo de rue</strong></td><td>12 Avr</td><td>Khady N.</td><td>20/25</td><td><span class="badge badge-blue">Planifié</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Gérer atelier','🛠️')">Gérer</button></td></tr>
+          <tr><td><strong>Montage vidéo</strong></td><td>20 Avr</td><td>Ibrahima B.</td><td>12/20</td><td><span class="badge badge-blue">Planifié</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Gérer atelier','🛠️')">Gérer</button></td></tr>
+          <tr><td><strong>Design Canva</strong></td><td>05 Mai</td><td>Fatou K.</td><td>8/30</td><td><span class="badge badge-yellow">Ouvert</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Gérer atelier','🛠️')">Gérer</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title"><div class="dot"></div>Planifier un nouvel atelier</div></div>
+      <div class="f-row">
+        <div class="f-group"><label class="f-label">Titre de l'atelier</label><input class="f-input" placeholder="Ex: Introduction au journalisme"></div>
+        <div class="f-group"><label class="f-label">Formateur</label><input class="f-input" placeholder="Nom du formateur"></div>
+      </div>
+      <div class="f-row">
+        <div class="f-group"><label class="f-label">Date</label><input class="f-input" type="date"></div>
+        <div class="f-group"><label class="f-label">Capacité max</label><input class="f-input" type="number" placeholder="30"></div>
+      </div>
+      <div class="f-group"><label class="f-label">Description</label><textarea class="f-textarea" placeholder="Objectifs, contenu, matériel requis..."></textarea></div>
+      <button class="btn btn-primary" onclick="showToast('Atelier planifié !','✅')">Enregistrer l'atelier</button>
+    </div>
+  `;
+}
+
+/* ── PUBLICATIONS PANEL ── */
+function buildPublicationsPanel() {
+  return `
+    <div class="stats-row">
+      <div class="stat-card c1"><div class="stat-icon">📰</div><div class="stat-num">127</div><div class="stat-lbl">Publications totales</div></div>
+      <div class="stat-card c2"><div class="stat-icon">👁️</div><div class="stat-num">4.2k</div><div class="stat-lbl">Vues ce mois</div><div class="stat-trend trend-up">↑ +18%</div></div>
+      <div class="stat-card c3"><div class="stat-icon">❤️</div><div class="stat-num">856</div><div class="stat-lbl">Interactions</div></div>
+      <div class="stat-card c4"><div class="stat-icon">📲</div><div class="stat-num">5</div><div class="stat-lbl">En attente</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title"><div class="dot"></div>Publications récentes</div>
+        <button class="btn btn-primary btn-sm" onclick="showToast('Éditeur ouvert','✏️')">+ Rédiger</button>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Titre</th><th>Plateforme</th><th>Date</th><th>Vues</th><th>Statut</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>Retour sur l'atelier photo 📸</td><td>Facebook + Instagram</td><td>05/04</td><td>342</td><td><span class="badge badge-green">Publié</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Éditer','✏️')">Éditer</button></td></tr>
+          <tr><td>Formation Canva — inscriptions</td><td>WhatsApp + Web</td><td>03/04</td><td>210</td><td><span class="badge badge-green">Publié</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Éditer','✏️')">Éditer</button></td></tr>
+          <tr><td>Communiqué partenariat médias</td><td>Site web</td><td>01/04</td><td>98</td><td><span class="badge badge-yellow">Brouillon</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Publier maintenant','🚀')">Publier</button></td></tr>
+          <tr><td>Newsletter Avril 2024</td><td>Email</td><td>—</td><td>—</td><td><span class="badge badge-yellow">Brouillon</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Publier','🚀')">Publier</button></td></tr>
+          <tr><td>Reportage marché digital</td><td>YouTube</td><td>—</td><td>—</td><td><span class="badge badge-red">Rejeté</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Réviser','🔄')">Réviser</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title"><div class="dot"></div>Nouvelle publication</div></div>
+      <div class="f-group"><label class="f-label">Titre</label><input class="f-input" placeholder="Titre de la publication"></div>
+      <div class="f-row">
+        <div class="f-group"><label class="f-label">Plateforme</label>
+          <select class="f-select"><option>Facebook</option><option>Instagram</option><option>Site web</option><option>WhatsApp</option><option>YouTube</option><option>Toutes</option></select>
+        </div>
+        <div class="f-group"><label class="f-label">Date de publication</label><input class="f-input" type="datetime-local"></div>
+      </div>
+      <div class="f-group"><label class="f-label">Contenu</label><textarea class="f-textarea" style="min-height:130px;" placeholder="Rédigez votre publication..."></textarea></div>
+      <div style="display:flex;gap:0.8rem;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="showToast('Publication planifiée !','🚀')">🚀 Publier</button>
+        <button class="btn btn-ghost" onclick="showToast('Enregistré en brouillon','💾')">💾 Brouillon</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ── RESEAUX PANEL ── */
+function buildReseauxPanel() {
+  return `
+    <div class="stats-row">
+      <div class="stat-card c1"><div class="stat-icon">𝓕</div><div class="stat-num">1.2k</div><div class="stat-lbl">Facebook</div><div class="stat-trend trend-up">↑ +45</div></div>
+      <div class="stat-card c2"><div class="stat-icon">📷</div><div class="stat-num">876</div><div class="stat-lbl">Instagram</div><div class="stat-trend trend-up">↑ +31</div></div>
+      <div class="stat-card c3"><div class="stat-icon">▶</div><div class="stat-num">342</div><div class="stat-lbl">YouTube</div><div class="stat-trend trend-up">↑ +12</div></div>
+      <div class="stat-card c4"><div class="stat-icon">💬</div><div class="stat-num">420</div><div class="stat-lbl">WhatsApp</div><div class="stat-trend" style="color:var(--muted);">Groupes actifs</div></div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><div class="card-title"><div class="dot"></div>Croissance abonnés</div></div>
+        ${buildBarChart()}
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title"><div class="dot"></div>Engagement par plateforme</div></div>
+        ${[
+          { lbl:'Facebook', pct:65, color:'#1877F2' },
+          { lbl:'Instagram', pct:48, color:'#E4405F' },
+          { lbl:'YouTube', pct:32, color:'#FF0000' },
+          { lbl:'WhatsApp', pct:80, color:'#25D366' },
+        ].map(b => `
+          <div style="margin-bottom:1rem;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;">
+              <span style="font-size:0.85rem;color:var(--muted);">${b.lbl}</span>
+              <span style="font-family:'Share Tech Mono',monospace;font-size:0.75rem;color:${b.color};">${b.pct}%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${b.pct}%;background:${b.color};"></div></div>
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+/* ── COURRIERS PANEL ── */
+function buildCourriersPanel() {
+  return `
+    <div class="card">
+      <div class="card-header"><div class="card-title"><div class="dot"></div>Courriers reçus</div>
+        <button class="btn btn-primary btn-sm" onclick="showToast('Nouveau courrier ajouté','✉️')">+ Enregistrer</button>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>N°</th><th>Expéditeur</th><th>Objet</th><th>Date</th><th>Statut</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>C-024</td><td>Mairie de Dakar</td><td>Invitation événement numérique</td><td>04/04</td><td><span class="badge badge-yellow">À traiter</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Traité','✅')">Traiter</button></td></tr>
+          <tr><td>C-023</td><td>Université UCAD</td><td>Partenariat éducation numérique</td><td>02/04</td><td><span class="badge badge-yellow">À traiter</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Traité','✅')">Traiter</button></td></tr>
+          <tr><td>C-022</td><td>ONG TechAfrica</td><td>Demande de collaboration</td><td>01/04</td><td><span class="badge badge-yellow">À traiter</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Traité','✅')">Traiter</button></td></tr>
+          <tr><td>C-021</td><td>École Privée XYZ</td><td>Formation enseignants</td><td>28/03</td><td><span class="badge badge-green">Traité</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Archivé','🗃️')">Archiver</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title"><div class="dot"></div>Rédiger un courrier</div></div>
+      <div class="f-row">
+        <div class="f-group"><label class="f-label">Destinataire</label><input class="f-input" placeholder="Organisation / Personne"></div>
+        <div class="f-group"><label class="f-label">Objet</label><input class="f-input" placeholder="Objet du courrier"></div>
+      </div>
+      <div class="f-group"><label class="f-label">Corps du courrier</label><textarea class="f-textarea" style="min-height:150px;" placeholder="Rédigez votre courrier officiel..."></textarea></div>
+      <div style="display:flex;gap:0.8rem;">
+        <button class="btn btn-primary" onclick="showToast('Courrier enregistré !','✉️')">💾 Enregistrer</button>
+        <button class="btn btn-ghost" onclick="showToast('Courrier envoyé !','📨')">📨 Envoyer</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ── PROJETS PANEL ── */
+function buildProjetsPanel() {
+  return `
+    <div class="stats-row">
+      <div class="stat-card c1"><div class="stat-icon">📁</div><div class="stat-num">14</div><div class="stat-lbl">Projets actifs</div></div>
+      <div class="stat-card c2"><div class="stat-icon">✅</div><div class="stat-num">28</div><div class="stat-lbl">Terminés</div></div>
+      <div class="stat-card c3"><div class="stat-icon">⏸️</div><div class="stat-num">3</div><div class="stat-lbl">En pause</div></div>
+      <div class="stat-card c4"><div class="stat-icon">🔥</div><div class="stat-num">5</div><div class="stat-lbl">Prioritaires</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title"><div class="dot"></div>Projets en cours</div>
+        <button class="btn btn-primary btn-sm" onclick="showToast('Nouveau projet créé','📁')">+ Nouveau projet</button>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Projet</th><th>Responsable</th><th>Deadline</th><th>Avancement</th><th>Statut</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Site web SENUM</strong></td><td>Ibrahima B.</td><td>30 Avr</td><td>
+            <div class="progress-bar" style="width:120px;"><div class="progress-fill" style="width:80%;"></div></div>
+          </td><td><span class="badge badge-blue">En cours</span></td></tr>
+          <tr><td><strong>Campagne #NumériquePourTous</strong></td><td>Khady N.</td><td>15 Mai</td><td>
+            <div class="progress-bar" style="width:120px;"><div class="progress-fill" style="width:45%;"></div></div>
+          </td><td><span class="badge badge-yellow">Planifié</span></td></tr>
+          <tr><td><strong>Podcast SENUM Radio</strong></td><td>Moussa S.</td><td>01 Juin</td><td>
+            <div class="progress-bar" style="width:120px;"><div class="progress-fill" style="width:20%;"></div></div>
+          </td><td><span class="badge badge-yellow">Démarrage</span></td></tr>
+          <tr><td><strong>Reportage quartier numérique</strong></td><td>Fatou K.</td><td>20 Avr</td><td>
+            <div class="progress-bar" style="width:120px;"><div class="progress-fill" style="width:95%;"></div></div>
+          </td><td><span class="badge badge-green">Finalisation</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+/* ── COMPTES RENDUS PANEL ── */
+function buildComptesPanel() {
+  return `
+    <div class="card">
+      <div class="card-header"><div class="card-title"><div class="dot"></div>Comptes rendus officiels</div>
+        <button class="btn btn-primary btn-sm" onclick="showToast('Rédaction ouverte','📄')">+ Nouveau CR</button>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Réunion</th><th>Date</th><th>Participants</th><th>Rédacteur</th><th>Statut</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>Bureau mensuel — Avril</td><td>01/04/2024</td><td>12</td><td>Fatou K.</td><td><span class="badge badge-green">Validé</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Téléchargé','📥')">Télécharger</button></td></tr>
+          <tr><td>Bureau mensuel — Mars</td><td>04/03/2024</td><td>10</td><td>Fatou K.</td><td><span class="badge badge-green">Validé</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Téléchargé','📥')">Télécharger</button></td></tr>
+          <tr><td>AG extraordinaire</td><td>15/02/2024</td><td>48</td><td>Omar D.</td><td><span class="badge badge-green">Validé</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Téléchargé','📥')">Télécharger</button></td></tr>
+          <tr><td>Bureau — planification annuelle</td><td>05/01/2024</td><td>14</td><td>Fatou K.</td><td><span class="badge badge-yellow">En révision</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Ouvert en édition','✏️')">Éditer</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title"><div class="dot"></div>Rédiger un compte rendu</div></div>
+      <div class="f-row">
+        <div class="f-group"><label class="f-label">Type de réunion</label>
+          <select class="f-select"><option>Bureau mensuel</option><option>Assemblée générale</option><option>Réunion de projet</option><option>Autre</option></select>
+        </div>
+        <div class="f-group"><label class="f-label">Date de la réunion</label><input class="f-input" type="date"></div>
+      </div>
+      <div class="f-group"><label class="f-label">Participants</label><input class="f-input" placeholder="Liste des présents..."></div>
+      <div class="f-group"><label class="f-label">Ordre du jour & Résolutions</label>
+        <textarea class="f-textarea" style="min-height:160px;" placeholder="1. ...\n2. ...\n\nRésolutions adoptées:\n- ..."></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="showToast('Compte rendu enregistré !','✅')">Enregistrer et soumettre</button>
+    </div>
+  `;
+}
+
+/* ── DEPENSES / RECETTES ── */
+function buildDepensesPanel() {
+  return `
+    <div class="card">
+      <div class="card-header"><div class="card-title"><div class="dot"></div>Journal des dépenses</div>
+        <button class="btn btn-primary btn-sm" onclick="showToast('Dépense enregistrée','📉')">+ Ajouter</button>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Date</th><th>Catégorie</th><th>Description</th><th>Montant (FCFA)</th><th>Validé par</th></tr></thead>
+        <tbody>
+          <tr><td>03/04</td><td>Matériel</td><td>Achat trépied photo</td><td style="color:#f87171;">-45 000</td><td>Aminata M.</td></tr>
+          <tr><td>28/03</td><td>Location</td><td>Salle atelier — 2h</td><td style="color:#f87171;">-15 000</td><td>Omar D.</td></tr>
+          <tr><td>20/03</td><td>Communication</td><td>Impression affiches</td><td style="color:#f87171;">-8 500</td><td>Aminata M.</td></tr>
+          <tr><td>15/03</td><td>Événement</td><td>Rafraîchissements AG</td><td style="color:#f87171;">-22 000</td><td>Fatou K.</td></tr>
+          <tr><td>10/03</td><td>Transport</td><td>Déplacements membres</td><td style="color:#f87171;">-12 000</td><td>Moussa S.</td></tr>
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function buildRecettesPanel() {
+  return `
+    <div class="card">
+      <div class="card-header"><div class="card-title"><div class="dot"></div>Journal des recettes</div>
+        <button class="btn btn-primary btn-sm" onclick="showToast('Recette enregistrée','📈')">+ Ajouter</button>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Date</th><th>Source</th><th>Description</th><th>Montant (FCFA)</th><th>Preuve</th></tr></thead>
+        <tbody>
+          <tr><td>05/04</td><td>Cotisations</td><td>Cotisations membres — Avril</td><td style="color:#34d399;">+25 000</td><td><span class="badge badge-green">Confirmé</span></td></tr>
+          <tr><td>01/04</td><td>Subvention</td><td>Mairie de Dakar</td><td style="color:#34d399;">+100 000</td><td><span class="badge badge-green">Confirmé</span></td></tr>
+          <tr><td>25/03</td><td>Vente</td><td>Produits club (t-shirts, badges)</td><td style="color:#34d399;">+18 500</td><td><span class="badge badge-yellow">À vérifier</span></td></tr>
+          <tr><td>15/03</td><td>Don</td><td>Sponsor atelier photo</td><td style="color:#34d399;">+50 000</td><td><span class="badge badge-green">Confirmé</span></td></tr>
+        </tbody>
+      </table>
+    </div>`;
+}
+
+/* ─── HELPERS ─── */
+function buildMiniCal() {
+  const days = ['L','M','M','J','V','S','D'];
+  const events = [4, 12, 20, 27];
+  let html = `<div class="cal-grid">`;
+  days.forEach(d => html += `<div class="cal-day-lbl">${d}</div>`);
+  for (let i=0;i<3;i++) html += `<div class="cal-day empty"></div>`;
+  for (let i=1;i<=30;i++) {
+    const cls = i===6?'today':events.includes(i)?'event':'';
+    html += `<div class="cal-day ${cls}" title="${events.includes(i)?'Événement':''}">${i}</div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function buildBarChart() {
+  const months = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  const vals   = [35,50,45,70,60,80,55,90,75,85,60,95];
+  const max = Math.max(...vals);
+  return `<div class="chart-bars">${months.map((m,i)=>`
+    <div class="bar-col">
+      <div class="bar-fill" style="height:${(vals[i]/max*100)}%;"></div>
+      <div class="bar-lbl">${m}</div>
+    </div>`).join('')}</div>`;
+}
+
+function buildProgress() {
+  const goals = [
+    { lbl:'Nouveaux membres', val:52, max:80 },
+    { lbl:'Ateliers réalisés', val:18, max:24 },
+    { lbl:'Budget collecté',   val:320, max:500, suffix:'k' },
+    { lbl:'Publications',      val:127, max:200 },
+  ];
+  return goals.map(g => `
+    <div style="margin-bottom:1rem;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;">
+        <span style="font-size:0.82rem;color:var(--muted);">${g.lbl}</span>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:0.72rem;color:var(--cyan);">${g.val}${g.suffix||''}/${g.max}${g.suffix||''}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(g.val/g.max*100)}%;"></div></div>
+    </div>`).join('');
+}
+
+/* ─── SIDEBAR TOGGLE ─── */
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+/* ─── TOAST ─── */
+function showToast(msg, icon='✅') {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  document.getElementById('toastIcon').textContent = icon;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ─── HINT: afficher les mots de passe ─── */
+// Les mots de passe par défaut (à changer) :
+// président: president2024 | vp: vp2024 | sg: sg2024
+// trésorier: tresor2024 | formation: formation2024 | comm: comm2024
+</script>
+</body>
+</html>
