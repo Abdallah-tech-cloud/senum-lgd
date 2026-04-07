@@ -308,14 +308,41 @@ footer{background:rgba(5,10,26,.95);border-top:1px solid var(--border);padding:3
         <div class="contact-item"><div class="contact-icon">📱</div><div><h4>Téléphone</h4><a id="contactTel" href="tel:+221000000000">+221 00 000 00 00</a></div></div>
         <div class="contact-item"><div class="contact-icon">📲</div><div><h4>Réseaux Sociaux</h4><p id="contactReseaux">@SENUM_Officiel</p></div></div>
       </div>
-      <form class="contact-form reveal" onsubmit="submitForm(event)">
-        <div class="form-group"><label>Nom complet</label><input type="text" placeholder="Votre nom" required></div>
-        <div class="form-group"><label>Email</label><input type="email" placeholder="votre@email.com" required></div>
-        <div class="form-group"><label>Objet</label><select><option>Adhésion au club</option><option>Partenariat</option><option>Information</option><option>Autre</option></select></div>
-        <div class="form-group"><label>Message</label><textarea placeholder="Votre message..."></textarea></div>
-        <button type="submit" class="btn-primary">Envoyer →</button>
-        <div id="formSuccess" style="display:none;padding:1rem;background:rgba(0,180,216,.1);border:1px solid rgba(0,180,216,.3);border-radius:6px;color:var(--cyan-light);font-size:.9rem;margin-top:.5rem;">✅ Message envoyé ! Nous vous répondrons bientôt.</div>
-      </form>
+      <!-- Dans index.html : remplacez votre <form> par celui-ci -->
+<form class="contact-form reveal" onsubmit="submitForm(event)">
+  <div class="form-group">
+    <label>Nom complet</label>
+    <input type="text" id="msgNom" placeholder="Votre nom" required>
+  </div>
+  <div class="form-group">
+    <label>Email</label>
+    <input type="email" id="msgEmail" placeholder="votre@email.com" required>
+  </div>
+  <div class="form-group">
+    <label>Objet</label>
+    <select id="msgObjet">
+      <option>Adhésion au club</option>
+      <option>Partenariat</option>
+      <option>Information</option>
+      <option>Autre</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>Message</label>
+    <textarea id="msgTexte" placeholder="Votre message..."></textarea>
+  </div>
+  <button type="submit" class="btn-primary" id="submitBtn">Envoyer →</button>
+  <div id="formSuccess" style="display:none;padding:1rem;background:rgba(0,180,216,.1);
+    border:1px solid rgba(0,180,216,.3);border-radius:6px;color:var(--cyan-light);
+    font-size:.9rem;margin-top:.5rem;">
+    ✅ Message envoyé ! Nous vous répondrons bientôt.
+  </div>
+  <div id="formError" style="display:none;padding:1rem;background:rgba(239,68,68,.1);
+    border:1px solid rgba(239,68,68,.3);border-radius:6px;color:#fca5a5;
+    font-size:.9rem;margin-top:.5rem;">
+    ❌ Erreur d'envoi. Réessayez ou écrivez-nous directement.
+  </div>
+</form>
     </div>
   </div>
 </section>
@@ -375,7 +402,46 @@ footer{background:rgba(5,10,26,.95);border-top:1px solid var(--border);padding:3
 <!-- ══ FIREBASE ══ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // Modifier la ligne d'import Firestore — ajouter addDoc et collection :
+import { getFirestore, doc, onSnapshot, addDoc, collection }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ... (le reste de votre code Firebase reste identique) ...
+
+// Ajouter cette fonction DANS le bloc <script type="module"> :
+window.submitForm = async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  btn.textContent = 'Envoi en cours...';
+  btn.disabled = true;
+
+  const message = {
+    nom:    document.getElementById('msgNom').value.trim(),
+    email:  document.getElementById('msgEmail').value.trim(),
+    objet:  document.getElementById('msgObjet').value,
+    texte:  document.getElementById('msgTexte').value.trim(),
+    date:   new Date().toLocaleDateString('fr-FR', {
+              day:'numeric', month:'long', year:'numeric',
+              hour:'2-digit', minute:'2-digit'
+            }),
+    lu:     false   // non lu par défaut
+  };
+
+  try {
+    await addDoc(collection(db, 'senum', 'site', 'messages'), message);
+    document.getElementById('formSuccess').style.display = 'block';
+    document.getElementById('formError').style.display   = 'none';
+    e.target.reset();
+  } catch(err) {
+    console.error(err);
+    document.getElementById('formError').style.display   = 'block';
+    document.getElementById('formSuccess').style.display = 'none';
+  } finally {
+    btn.textContent = 'Envoyer →';
+    btn.disabled = false;
+  }
+};
 
 // ⚠️ REMPLACEZ par votre configuration Firebase
 const firebaseConfig = {
