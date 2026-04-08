@@ -300,17 +300,20 @@ function toast(msg,icon){ window.showToast(msg,icon); }
 /* ═════════════════ ROLES ════════════════════════ */
 const ROLES={
   president:{label:"Président(e)",emoji:"👑",color:"#f59e0b",pwd:"president2024",
-    nav:[{id:"overview",icon:"🏠",label:"Vue d'ensemble"},{id:"site",icon:"🌐",label:"Éditer le site"},{id:"annonces",icon:"📢",label:"Annonces",badge:"new"},{id:"equipe",icon:"👥",label:"Équipe"},{id:"stats",icon:"📊",label:"Statistiques"}]},
+    nav:[{id:"overview",icon:"🏠",label:"Vue d'ensemble"},{id:"site",icon:"🌐",label:"Éditer le site"},{id:"annonces",icon:"📢",label:"Annonces",badge:"new"},{id:"equipe",icon:"👥",label:"Équipe"},{id:"stats",icon:"📊",label:"Statistiques"},// Exemple pour le président — ajouter dans nav[] :
+{ id:"messages", icon:"✉️", label:"Messages", badge:"new" }]},
   vp:{label:"Vice-Président(e)",emoji:"🔷",color:"#8b5cf6",pwd:"vp2024",
     nav:[{id:"overview",icon:"🏠",label:"Vue d'ensemble"},{id:"annonces",icon:"📢",label:"Annonces"},{id:"equipe",icon:"👥",label:"Équipe"},{id:"stats",icon:"📊",label:"Statistiques"}]},
   sg:{label:"Secrétaire Général(e)",emoji:"📋",color:"#10b981",pwd:"sg2024",
-    nav:[{id:"overview",icon:"🏠",label:"Vue d'ensemble"},{id:"site",icon:"🌐",label:"Éditer le site"},{id:"annonces",icon:"📢",label:"Annonces"},{id:"equipe",icon:"👥",label:"Équipe"}]},
+    nav:[{id:"overview",icon:"🏠",label:"Vue d'ensemble"},{id:"site",icon:"🌐",label:"Éditer le site"},{id:"annonces",icon:"📢",label:"Annonces"},{id:"equipe",icon:"👥",label:"Équipe"},// Exemple pour le président — ajouter dans nav[] :
+{ id:"messages", icon:"✉️", label:"Messages", badge:"new" }]},
   tresorier:{label:"Trésorier(e)",emoji:"💰",color:"#ef4444",pwd:"tresor2024",
     nav:[{id:"overview",icon:"🏠",label:"Vue d'ensemble"},{id:"stats",icon:"📊",label:"Statistiques"},{id:"annonces",icon:"📢",label:"Annonces"}]},
   formation:{label:"Resp. Formation",emoji:"🎓",color:"#06b6d4",pwd:"formation2024",
     nav:[{id:"overview",icon:"🏠",label:"Vue d'ensemble"},{id:"annonces",icon:"📢",label:"Annonces"},{id:"stats",icon:"📊",label:"Statistiques"}]},
   comm:{label:"Resp. Communication",emoji:"📣",color:"#ec4899",pwd:"comm2024",
-    nav:[{id:"overview",icon:"🏠",label:"Vue d'ensemble"},{id:"annonces",icon:"📢",label:"Annonces"},{id:"site",icon:"🌐",label:"Éditer le site"},{id:"stats",icon:"📊",label:"Statistiques"}]}
+    nav:[{id:"overview",icon:"🏠",label:"Vue d'ensemble"},{id:"annonces",icon:"📢",label:"Annonces"},{id:"site",icon:"🌐",label:"Éditer le site"},{id:"stats",icon:"📊",label:"Statistiques"},// Exemple pour le président — ajouter dans nav[] :
+{ id:"messages", icon:"✉️", label:"Messages", badge:"new" }]}
 };
 
 let currentRole=null;
@@ -371,6 +374,7 @@ function switchPanel(id,el){
   el.classList.add("active");
   switchPanelById(id);
   closeSidebar();
+  if (id === 'messages') loadMessages();
 }
 function switchPanelById(id){
   document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
@@ -400,7 +404,85 @@ function getPanel(pid,role){
     case "equipe":    return panelEquipe();
     case "stats":     return panelStats();
     default: return "<p>Panel en construction.</p>";
+    case "messages": return panelMessages();
   }
+}
+  async function loadMessages() {
+  const c = document.getElementById('messagesList');
+  if (!c) return;
+  if (!window._fb || !window._fb.firebaseOK()) {
+    c.innerHTML = '<p style="color:var(--muted);">Firebase non configuré.</p>';
+    return;
+  }
+  try {
+    const { getFirestore, collection, getDocs, query, orderBy, updateDoc, doc, deleteDoc }
+      = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const db = getFirestore();
+    const filtre = document.getElementById('msgFilter')?.value || '';
+    const snap = await getDocs(
+      query(collection(db,'senum','site','messages'), orderBy('date','desc'))
+    );
+    const msgs = [];
+    snap.forEach(d => msgs.push({ id: d.id, ...d.data() }));
+    const filtered = filtre ? msgs.filter(m => m.objet === filtre) : msgs;
+
+    // Update stats
+    const nonLus = msgs.filter(m => !m.lu).length;
+    const adhesion = msgs.filter(m => m.objet === 'Adhésion au club').length;
+    const partenariat = msgs.filter(m => m.objet === 'Partenariat').length;
+    ['msg_total','msg_nonlus','msg_adhesion','msg_partenariat'].forEach((id,i) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = [msgs.length, nonLus, adhesion, partenariat][i];
+    });
+
+    if (!filtered.length) {
+      c.innerHTML = '<p style="color:var(--muted);font-size:.9rem;text-align:center;padding:2rem;">Aucun message.</p>';
+      return;
+    }
+
+    c.innerHTML = filtered.map(m => `
+      <div id="msg-${m.id}" style="background:rgba(5,10,26,.6);border:1px solid ${m.lu?'var(--border)':'rgba(0,180,216,.4)'};
+        border-radius:10px;padding:1.2rem;margin-bottom:.8rem;transition:all .3s;">
+        <div style="display:flex;justify-content:space-between;align-items:start;gap:1rem;flex-wrap:wrap;">
+          <div>
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;">
+              ${!m.lu ? '<span style="width:8px;height:8px;border-radius:50%;background:var(--cyan);display:inline-block;box-shadow:0 0 6px var(--cyan);"></span>' : ''}
+              <span style="font-family:\'Rajdhani\',sans-serif;font-weight:700;font-size:1rem;color:var(--white);">${esc(m.nom)}</span>
+              <span class="badge badge-blue">${esc(m.objet)}</span>
+            </div>
+            <div style="font-size:.82rem;color:var(--cyan);margin-bottom:.4rem;">
+              <a href="mailto:${esc(m.email)}" style="color:var(--cyan);text-decoration:none;">${esc(m.email)}</a>
+            </div>
+            <div style="font-size:.9rem;color:var(--muted);line-height:1.65;">${esc(m.texte)}</div>
+            <div style="font-family:\'Share Tech Mono\',monospace;font-size:.6rem;color:rgba(126,168,201,.4);margin-top:.6rem;">${esc(m.date)}</div>
+          </div>
+          <div style="display:flex;gap:.4rem;flex-shrink:0;flex-wrap:wrap;">
+            ${!m.lu ? `<button class="btn btn-success btn-sm" onclick="markRead('${m.id}')">✓ Lu</button>` : ''}
+            <a href="mailto:${esc(m.email)}?subject=Re: ${esc(m.objet)}" class="btn btn-ghost btn-sm">↩ Répondre</a>
+            <button class="btn btn-danger btn-sm" onclick="deleteMsg('${m.id}')">🗑️</button>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    c.innerHTML = `<p style="color:#fca5a5;">Erreur : ${e.message}</p>`;
+  }
+}
+
+async function markRead(id) {
+  const { getFirestore, doc, updateDoc }
+    = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+  await updateDoc(doc(getFirestore(),'senum','site','messages',id), { lu: true });
+  showToast('Message marqué comme lu','✅');
+  loadMessages();
+}
+
+async function deleteMsg(id) {
+  if (!confirm('Supprimer ce message définitivement ?')) return;
+  const { getFirestore, doc, deleteDoc }
+    = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+  await deleteDoc(doc(getFirestore(),'senum','site','messages',id));
+  showToast('Message supprimé','🗑️');
+  loadMessages();
 }
 
 /* ── OVERVIEW ── */
@@ -535,6 +617,40 @@ function panelEquipe(){
     <div id="equipeEditor">
       ${buildEquipeEditor(defaultEquipe())}
     </div>
+  </div>`;
+}
+function panelMessages() {
+  return `
+  <div class="stats-row">
+    <div class="stat-card c1"><div class="stat-icon">✉️</div>
+      <div class="stat-num" id="msg_total">—</div>
+      <div class="stat-lbl">Total messages</div></div>
+    <div class="stat-card c2"><div class="stat-icon">🔴</div>
+      <div class="stat-num" id="msg_nonlus">—</div>
+      <div class="stat-lbl">Non lus</div></div>
+    <div class="stat-card c3"><div class="stat-icon">📋</div>
+      <div class="stat-num" id="msg_adhesion">—</div>
+      <div class="stat-lbl">Adhésions</div></div>
+    <div class="stat-card c4"><div class="stat-icon">🤝</div>
+      <div class="stat-num" id="msg_partenariat">—</div>
+      <div class="stat-lbl">Partenariats</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><div class="dot"></div>Messages reçus</div>
+      <div style="display:flex;gap:.6rem;">
+        <select class="f-select" id="msgFilter" style="padding:.4rem .8rem;font-size:.8rem;width:auto;"
+          onchange="loadMessages()">
+          <option value="">Tous</option>
+          <option value="Adhésion au club">Adhésions</option>
+          <option value="Partenariat">Partenariats</option>
+          <option value="Information">Informations</option>
+          <option value="Autre">Autres</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="loadMessages()">🔄 Rafraîchir</button>
+      </div>
+    </div>
+    <div id="messagesList"><p style="color:var(--muted);font-size:.9rem;">Chargement...</p></div>
   </div>`;
 }
 
