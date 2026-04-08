@@ -403,9 +403,43 @@ function getPanel(pid,role){
     case "annonces":  return panelAnnonces();
     case "equipe":    return panelEquipe();
     case "stats":     return panelStats();
-    default: return "<p>Panel en construction.</p>";
     case "messages": return panelMessages();
+    default: return "<p>Panel en construction.</p>";
   }
+}
+  function panelMessages() {
+  return `
+  <div class="stats-row">
+    <div class="stat-card c1"><div class="stat-icon">✉️</div>
+      <div class="stat-num" id="msg_total">—</div>
+      <div class="stat-lbl">Total messages</div></div>
+    <div class="stat-card c2"><div class="stat-icon">🔴</div>
+      <div class="stat-num" id="msg_nonlus">—</div>
+      <div class="stat-lbl">Non lus</div></div>
+    <div class="stat-card c3"><div class="stat-icon">📋</div>
+      <div class="stat-num" id="msg_adhesion">—</div>
+      <div class="stat-lbl">Adhésions</div></div>
+    <div class="stat-card c4"><div class="stat-icon">🤝</div>
+      <div class="stat-num" id="msg_partenariat">—</div>
+      <div class="stat-lbl">Partenariats</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><div class="dot"></div>Messages reçus</div>
+      <div style="display:flex;gap:.6rem;">
+        <select class="f-select" id="msgFilter" style="padding:.4rem .8rem;font-size:.8rem;width:auto;"
+          onchange="loadMessages()">
+          <option value="">Tous</option>
+          <option value="Adhésion au club">Adhésions</option>
+          <option value="Partenariat">Partenariats</option>
+          <option value="Information">Informations</option>
+          <option value="Autre">Autres</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="loadMessages()">🔄 Rafraîchir</button>
+      </div>
+    </div>
+    <div id="messagesList"><p style="color:var(--muted);font-size:.9rem;">Chargement...</p></div>
+  </div>`;
 }
   async function loadMessages() {
   const c = document.getElementById('messagesList');
@@ -619,40 +653,7 @@ function panelEquipe(){
     </div>
   </div>`;
 }
-function panelMessages() {
-  return `
-  <div class="stats-row">
-    <div class="stat-card c1"><div class="stat-icon">✉️</div>
-      <div class="stat-num" id="msg_total">—</div>
-      <div class="stat-lbl">Total messages</div></div>
-    <div class="stat-card c2"><div class="stat-icon">🔴</div>
-      <div class="stat-num" id="msg_nonlus">—</div>
-      <div class="stat-lbl">Non lus</div></div>
-    <div class="stat-card c3"><div class="stat-icon">📋</div>
-      <div class="stat-num" id="msg_adhesion">—</div>
-      <div class="stat-lbl">Adhésions</div></div>
-    <div class="stat-card c4"><div class="stat-icon">🤝</div>
-      <div class="stat-num" id="msg_partenariat">—</div>
-      <div class="stat-lbl">Partenariats</div></div>
-  </div>
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title"><div class="dot"></div>Messages reçus</div>
-      <div style="display:flex;gap:.6rem;">
-        <select class="f-select" id="msgFilter" style="padding:.4rem .8rem;font-size:.8rem;width:auto;"
-          onchange="loadMessages()">
-          <option value="">Tous</option>
-          <option value="Adhésion au club">Adhésions</option>
-          <option value="Partenariat">Partenariats</option>
-          <option value="Information">Informations</option>
-          <option value="Autre">Autres</option>
-        </select>
-        <button class="btn btn-ghost btn-sm" onclick="loadMessages()">🔄 Rafraîchir</button>
-      </div>
-    </div>
-    <div id="messagesList"><p style="color:var(--muted);font-size:.9rem;">Chargement...</p></div>
-  </div>`;
-}
+
 
 /* ── STATS ── */
 function panelStats(){
