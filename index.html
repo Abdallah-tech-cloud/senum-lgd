@@ -16,6 +16,7 @@
 
   gtag('config', 'G-ZX9G7KLJ0V');
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 :root{--navy:#050a1a;--dark:#080f22;--blue-deep:#0d1b5e;--blue-mid:#1a3a8f;--blue-bright:#2563eb;--cyan:#00b4d8;--cyan-light:#48cae4;--white:#e8f4ff;--muted:#7ea8c9;--border:rgba(0,180,216,0.2);}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -342,14 +343,14 @@ footer{background:rgba(5,10,26,.95);border-top:1px solid var(--border);padding:3
   </div>
   <button type="submit" class="btn-primary" id="submitBtn">Envoyer →</button>
   <div id="formSuccess" style="display:none;padding:1rem;background:rgba(0,180,216,.1);
-    border:1px solid rgba(0,180,216,.3);border-radius:6px;color:var(--cyan-light);
-    font-size:.9rem;margin-top:.5rem;">
+       border:1px solid rgba(0,180,216,.3);border-radius:6px;color:var(--cyan-light);
+       font-size:.9rem;margin-top:.5rem;">
     ✅ Message envoyé ! Nous vous répondrons bientôt.
   </div>
   <div id="formError" style="display:none;padding:1rem;background:rgba(239,68,68,.1);
-    border:1px solid rgba(239,68,68,.3);border-radius:6px;color:#fca5a5;
-    font-size:.9rem;margin-top:.5rem;">
-    ❌ Erreur d'envoi. Réessayez ou écrivez-nous directement.
+       border:1px solid rgba(239,68,68,.3);border-radius:6px;color:#fca5a5;
+       font-size:.9rem;margin-top:.5rem;">
+    ❌ Erreur d'envoi. Réessayez ou contactez-nous directement.
   </div>
 </form>
     </div>
@@ -566,6 +567,61 @@ function setActivity(i,el){
 }
 function submitForm(e){e.preventDefault();const s=document.getElementById('formSuccess');s.style.display='block';e.target.reset();setTimeout(()=>s.style.display='none',5000);}
 document.getElementById('yr').textContent=new Date().getFullYear();
+</script>
+  <script>
+// ════════════════════════════════════════
+//  ⚠️  REMPLACEZ CES 3 VALEURS
+// ════════════════════════════════════════
+const EMAILJS_PUBLIC_KEY  = "ktr41rIBCpRqfpmkX";   // ex: user_AbCdEf123
+const EMAILJS_SERVICE_ID  = "service_abc123";   // ex: service_abc123
+const EMAILJS_TEMPLATE_ID = "template_f1jac08";  // ex: template_xyz789
+// ════════════════════════════════════════
+
+// Initialiser EmailJS
+emailjs.init(EMAILJS_PUBLIC_KEY);
+
+async function submitForm(e) {
+  e.preventDefault();
+
+  const nom    = document.getElementById('msgNom').value.trim();
+  const email  = document.getElementById('msgEmail').value.trim();
+  const objet  = document.getElementById('msgObjet').value;
+  const texte  = document.getElementById('msgTexte').value.trim();
+  const btn    = document.getElementById('submitBtn');
+  const succes = document.getElementById('formSuccess');
+  const erreur = document.getElementById('formError');
+
+  // Validation simple
+  if (!nom || !email || !texte) return;
+
+  // État chargement
+  btn.textContent = '⏳ Envoi en cours...';
+  btn.disabled    = true;
+  succes.style.display = 'none';
+  erreur.style.display = 'none';
+
+  try {
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      nom:     nom,
+      email:   email,
+      objet:   objet,
+      message: texte,
+      // Ces variables doivent correspondre exactement à votre template EmailJS
+    });
+
+    // Succès
+    succes.style.display = 'block';
+    e.target.reset();
+
+  } catch (err) {
+    console.error('EmailJS error:', err);
+    erreur.style.display = 'block';
+
+  } finally {
+    btn.textContent = 'Envoyer →';
+    btn.disabled    = false;
+  }
+}
 </script>
 </body>
 </html>
