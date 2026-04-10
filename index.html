@@ -405,223 +405,232 @@ footer{background:rgba(5,10,26,.95);border-top:1px solid var(--border);padding:3
           </svg>
         </a>
       </div>
-    <p class="footer-copy">© <span id="yr"></span> SENUM LGD – Synergie pour l'Éducation au Numérique et aux Médias du Lycée Galandou Diouf· Dakar, Sénégal</p>
+    <p class="footer-copy">© <span id="2026"></span> SENUM LGD – Synergie pour l'Éducation au Numérique et aux Médias du Lycée Galandou Diouf· Dakar, Sénégal</p>
   </div>
 </footer>
 
 <!-- ══ FIREBASE ══ -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-
-  // Modifier la ligne d'import Firestore — ajouter addDoc et collection :
-import { getFirestore, doc, onSnapshot, addDoc, collection }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-// ... (le reste de votre code Firebase reste identique) ...
-
-// Ajouter cette fonction DANS le bloc <script type="module"> :
-window.submitForm = async function(e) {
-  e.preventDefault();
-  const btn = document.getElementById('submitBtn');
-  btn.textContent = 'Envoi en cours...';
-  btn.disabled = true;
-
-  const message = {
-    nom:    document.getElementById('msgNom').value.trim(),
-    email:  document.getElementById('msgEmail').value.trim(),
-    objet:  document.getElementById('msgObjet').value,
-    texte:  document.getElementById('msgTexte').value.trim(),
-    date:   new Date().toLocaleDateString('fr-FR', {
-              day:'numeric', month:'long', year:'numeric',
-              hour:'2-digit', minute:'2-digit'
-            }),
-    lu:     false   // non lu par défaut
-  };
-
-  try {
-    await addDoc(collection(db, 'senum', 'site', 'messages'), message);
-    document.getElementById('formSuccess').style.display = 'block';
-    document.getElementById('formError').style.display   = 'none';
-    e.target.reset();
-  } catch(err) {
-    console.error(err);
-    document.getElementById('formError').style.display   = 'block';
-    document.getElementById('formSuccess').style.display = 'none';
-  } finally {
-    btn.textContent = 'Envoyer →';
-    btn.disabled = false;
-  }
-};
-
-// ⚠️ REMPLACEZ par votre configuration Firebase
+// ════════════════════════════════════════════
+//  FIREBASE — Remplacez par vos vraies clés
+//  Obtenez-les sur : console.firebase.google.com
+// ════════════════════════════════════════════
 const firebaseConfig = {
-  apiKey: "AIzaSyBgeY-kpRU2jWcgfNXe5PJ7gOYgFKBz2-o",
-  authDomain: "senum-club.firebaseapp.com",
-  projectId: "senum-club",
-  storageBucket: "senum-club.firebasestorage.app",
+  apiKey:            "AIzaSyBgeY-kpRU2jWcgfNXe5PJ7gOYgFKBz2-o",
+  authDomain:        "senum-club.firebaseapp.com",
+  projectId:         "senum-club",
+  storageBucket:     "senum-club.firebasestorage.app",
   messagingSenderId: "355678526526",
-  appId: "1:355678526526:web:0da2d2fed1e3721055456f"
+  appId:             "1:355678526526:web:0da2d2fed1e3721055456f"
 };
 
-try {
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
+// Vérifie si la config est réelle avant d'initialiser
+const configOK = firebaseConfig.apiKey !== "AIzaSyBgeY-kpRU2jWcgfNXe5PJ7gOYgFKBz2-o";
 
-  onSnapshot(doc(db,"senum","site"), snap => {
-    if (!snap.exists()) { fallback(); return; }
-    const d = snap.data();
+if (configOK) {
+  try {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+    const { getFirestore, doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
 
-    // Hero
-    if(d.hero){
-      t("heroBadge",    d.hero.badge);
-      t("heroTitre",    d.hero.titre);
-      t("heroSoustitre",d.hero.soustitre);
-    }
-    // Stats
-    if(d.stats){
-      t("statMembres",    d.stats.membres);
-      t("statAnnees",     d.stats.annees);
-      t("statAteliers",   d.stats.ateliers);
-      t("statPartenaires",d.stats.partenaires);
-    }
-    // Contact
-    if(d.contact){
-      t("contactAdresse", d.contact.adresse);
-      t("contactReseaux", d.contact.reseaux);
-      link("contactEmail",   d.contact.email,     "mailto:");
-      link("contactTel",     d.contact.telephone,  "tel:");
-      href("lienFacebook",   d.contact.facebook);
-      href("lienInstagram",  d.contact.instagram);
-      href("lienYoutube",    d.contact.youtube);
-      href("lienTwitter",    d.contact.twitter);
-    }
-    // Equipe
-    if(d.equipe && d.equipe.length){
-      document.getElementById("teamGrid").innerHTML = d.equipe.map(m=>`
-        <div class="member-card reveal visible">
-          <div class="member-avatar">${esc(m.initiales||"?")}</div>
-          <div class="member-name">${esc(m.nom||"Membre")}</div>
-          <div class="member-role">${esc(m.role||"")}</div>
-          <p class="member-desc">${esc(m.description||"")}</p>
-        </div>`).join("");
-    }
-    // Missions
-    if(d.missions && d.missions.length){
-      document.getElementById("missionsGrid").innerHTML = d.missions.map(m=>`
-        <div class="mission-card reveal visible">
-          <div class="mission-icon">${m.emoji||"📌"}</div>
-          <h3>${esc(m.titre||"")}</h3>
-          <p>${esc(m.description||"")}</p>
-        </div>`).join("");
-    }
-    // Annonces
-    renderAnnonces(d.annonces && d.annonces.length ? d.annonces : null);
-  }, ()=>fallback());
-} catch(e){ fallback(); }
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
 
-function t(id,val){ if(val){ const el=document.getElementById(id); if(el) el.textContent=val; }}
-function link(id,val,pfx){ if(val){ const el=document.getElementById(id); if(el){el.textContent=val;el.href=pfx+val.replace(/\s/g,"");}}}
-function href(id,val){ if(val){ const el=document.getElementById(id); if(el) el.href=val; }}
-function esc(s){ const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+    onSnapshot(doc(db, "senum", "site"), snap => {
+      if (!snap.exists()) { fallback(); return; }
+      const d = snap.data();
 
-function renderAnnonces(list){
-  const c=document.getElementById("annoncesContainer");
-  if(!list){ c.innerHTML='<p style="color:var(--muted);text-align:center;padding:2rem;">Aucune annonce pour le moment.</p>'; return; }
-  c.innerHTML=list.map(a=>`
+      if (d.hero) {
+        t("heroBadge",    d.hero.badge);
+        t("heroTitre",    d.hero.titre);
+        t("heroSoustitre",d.hero.soustitre);
+      }
+      if (d.stats) {
+        t("statMembres",    d.stats.membres);
+        t("statAnnees",     d.stats.annees);
+        t("statAteliers",   d.stats.ateliers);
+        t("statPartenaires",d.stats.partenaires);
+      }
+      if (d.contact) {
+        t("contactAdresse", d.contact.adresse);
+        t("contactReseaux", d.contact.reseaux);
+        link("contactEmail",  d.contact.email,     "mailto:");
+        link("contactTel",    d.contact.telephone,  "tel:");
+        href("lienFacebook",  d.contact.facebook);
+        href("lienInstagram", d.contact.instagram);
+        href("lienYoutube",   d.contact.youtube);
+        href("lienTwitter",   d.contact.twitter);
+      }
+      if (d.equipe && d.equipe.length) {
+        document.getElementById("teamGrid").innerHTML = d.equipe.map(m => `
+          <div class="member-card reveal visible">
+            <div class="member-avatar">${esc(m.initiales || "?")}</div>
+            <div class="member-name">${esc(m.nom || "Membre")}</div>
+            <div class="member-role">${esc(m.role || "")}</div>
+            <p class="member-desc">${esc(m.description || "")}</p>
+          </div>`).join("");
+      }
+      if (d.missions && d.missions.length) {
+        document.getElementById("missionsGrid").innerHTML = d.missions.map(m => `
+          <div class="mission-card reveal visible">
+            <div class="mission-icon">${m.emoji || "📌"}</div>
+            <h3>${esc(m.titre || "")}</h3>
+            <p>${esc(m.description || "")}</p>
+          </div>`).join("");
+      }
+      renderAnnonces(d.annonces && d.annonces.length ? d.annonces : null);
+    }, () => fallback());
+
+  } catch(e) {
+    console.warn("Erreur Firebase :", e);
+    fallback();
+  }
+} else {
+  // Pas encore configuré — affichage par défaut propre
+  fallback();
+}
+
+function t(id, val) {
+  if (val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+}
+function link(id, val, pfx) {
+  if (val) { const el = document.getElementById(id); if (el) { el.textContent = val; el.href = pfx + val.replace(/\s/g,""); } }
+}
+function href(id, val) {
+  if (val) { const el = document.getElementById(id); if (el) el.href = val; }
+}
+function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+function renderAnnonces(list) {
+  const c = document.getElementById("annoncesContainer");
+  if (!c) return;
+  if (!list) {
+    c.innerHTML = `
+      <div class="annonce-card">
+        <span class="annonce-badge ab-info">info</span>
+        <div>
+          <div class="annonce-title">Bienvenue sur le site SENUM LGD !</div>
+          <div class="annonce-content">
+            Restez connectés pour les prochaines annonces du club.
+            Les actualités apparaîtront ici en temps réel.
+          </div>
+          <div class="annonce-date">${new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</div>
+        </div>
+      </div>`;
+    return;
+  }
+  c.innerHTML = list.map(a => `
     <div class="annonce-card">
-      <span class="annonce-badge ab-${a.type||'info'}">${a.type||'info'}</span>
+      <span class="annonce-badge ab-${a.type || 'info'}">${a.type || 'info'}</span>
       <div>
-        <div class="annonce-title">${esc(a.titre||"")}</div>
-        <div class="annonce-content">${esc(a.contenu||"")}</div>
-        <div class="annonce-date">${esc(a.date||"")}</div>
+        <div class="annonce-title">${esc(a.titre || "")}</div>
+        <div class="annonce-content">${esc(a.contenu || "")}</div>
+        <div class="annonce-date">${esc(a.date || "")}</div>
       </div>
     </div>`).join("");
 }
 
-function fallback(){
-  renderAnnonces([{titre:"Site SENUM en ligne !",contenu:"Connectez Firebase pour afficher les annonces en temps réel depuis l'espace admin.",date:"Aujourd'hui",type:"info"}]);
-}
+function fallback() { renderAnnonces(null); }
 </script>
-
 <script>
 // Scroll reveal
-const obs=new IntersectionObserver((en)=>{en.forEach((e,i)=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add('visible'),i*80);obs.unobserve(e.target);}});},{threshold:.1});
-document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
-// Nav scroll
-window.addEventListener('scroll',()=>{ document.getElementById('mainNav').style.background=scrollY>50?'rgba(5,10,26,.97)':'rgba(5,10,26,.85)'; });
-function toggleMenu(){document.getElementById('navMobile').classList.toggle('open');}
-function closeMenu(){document.getElementById('navMobile').classList.remove('open');}
-// Activities
-const acts=[
-  {icon:'📸',title:'Ateliers Photo & Vidéo',text:'Nos membres apprennent les techniques de photographie et vidéographie, du cadrage au montage numérique professionnel.'},
-  {icon:'💻',title:'Formations Numériques',text:'Cours pratiques hebdomadaires couvrant Canva, design graphique, bureautique et création de sites web.'},
-  {icon:'🎙️',title:'Conférences & Débats',text:'Tables rondes réunissant experts et acteurs du numérique pour échanger sur les grandes tendances.'},
-  {icon:'📰',title:'Reportages & Journalisme',text:'Production de contenus journalistiques multimédias : articles, podcasts, mini-documentaires.'},
-  {icon:'🏆',title:'Hackathons & Concours',text:'Participation active aux compétitions numériques régionales dans le design, développement et communication.'},
-  {icon:'🌍',title:'Sensibilisation',text:'Actions de terrain pour démocratiser l\'accès au numérique et sensibiliser aux dangers d\'internet.'},
-];
-function setActivity(i,el){
-  document.querySelectorAll('.activity-item').forEach(e=>e.classList.remove('active')); el.classList.add('active');
-  const s=document.getElementById('activityShowcase');s.style.opacity='0';
-  setTimeout(()=>{s.innerHTML=`<div class="big-icon">${acts[i].icon}</div><h3>${acts[i].title}</h3><p>${acts[i].text}</p>`;s.style.opacity='1';},200);
-}
-function submitForm(e){e.preventDefault();const s=document.getElementById('formSuccess');s.style.display='block';e.target.reset();setTimeout(()=>s.style.display='none',5000);}
-document.getElementById('yr').textContent=new Date().getFullYear();
-</script>
-  <script>
-// ════════════════════════════════════════
-//  ⚠️  REMPLACEZ CES 3 VALEURS
-// ════════════════════════════════════════
-const EMAILJS_PUBLIC_KEY  = "ktr41rIBCpRqfpmkX";   // ex: user_AbCdEf123
-const EMAILJS_SERVICE_ID  = "service_abc123";   // ex: service_abc123
-const EMAILJS_TEMPLATE_ID = "template_f1jac08";  // ex: template_xyz789
-// ════════════════════════════════════════
+const obs = new IntersectionObserver((en) => {
+  en.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 80);
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: .1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 
-// Initialiser EmailJS
-emailjs.init(EMAILJS_PUBLIC_KEY);
+// Nav scroll
+window.addEventListener('scroll', () => {
+  document.getElementById('mainNav').style.background =
+    scrollY > 50 ? 'rgba(5,10,26,.97)' : 'rgba(5,10,26,.85)';
+});
+function toggleMenu() { document.getElementById('navMobile').classList.toggle('open'); }
+function closeMenu()  { document.getElementById('navMobile').classList.remove('open'); }
+
+// Activities
+const acts = [
+  { icon:'📸', title:'Ateliers Photo & Vidéo',    text:'Techniques de photographie et vidéographie, du cadrage au montage numérique professionnel.' },
+  { icon:'💻', title:'Formations Numériques',      text:'Canva, design graphique, bureautique et création de sites web pour tous niveaux.' },
+  { icon:'🎙️', title:'Conférences & Débats',       text:'Tables rondes avec experts du numérique sur les grandes tendances de l\'information.' },
+  { icon:'📰', title:'Reportages & Journalisme',   text:'Articles, podcasts, mini-documentaires sur l\'actualité locale et culturelle.' },
+  { icon:'🏆', title:'Hackathons & Concours',      text:'Compétitions numériques régionales : design, développement, communication.' },
+  { icon:'🌍', title:'Sensibilisation',            text:'Actions de terrain pour démocratiser le numérique et sensibiliser aux dangers d\'internet.' },
+];
+function setActivity(i, el) {
+  document.querySelectorAll('.activity-item').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  const s = document.getElementById('activityShowcase');
+  s.style.opacity = '0';
+  setTimeout(() => {
+    s.innerHTML = `<div class="big-icon">${acts[i].icon}</div><h3>${acts[i].title}</h3><p>${acts[i].text}</p>`;
+    s.style.opacity = '1';
+  }, 200);
+}
+
+// ════════════════════════════════════════
+//  EmailJS — Remplacez par vos vraies clés
+//  Obtenez-les sur : emailjs.com
+// ════════════════════════════════════════
+const EMAILJS_PUBLIC_KEY  = "ktr41rIBCpRqfpmkX";
+const EMAILJS_SERVICE_ID  = "service_abc123";
+const EMAILJS_TEMPLATE_ID = "template_f1jac08";
+
+// Initialiser EmailJS seulement si configuré
+if (EMAILJS_PUBLIC_KEY !== "ktr41rIBCpRqfpmkX" && typeof emailjs !== 'undefined') {
+  emailjs.init(EMAILJS_PUBLIC_KEY);
+}
 
 async function submitForm(e) {
   e.preventDefault();
+  const nom   = document.getElementById('msgNom').value.trim();
+  const email = document.getElementById('msgEmail').value.trim();
+  const objet = document.getElementById('msgObjet').value;
+  const texte = document.getElementById('msgTexte').value.trim();
+  const btn   = document.getElementById('submitBtn');
+  const ok    = document.getElementById('formSuccess');
+  const err   = document.getElementById('formError');
 
-  const nom    = document.getElementById('msgNom').value.trim();
-  const email  = document.getElementById('msgEmail').value.trim();
-  const objet  = document.getElementById('msgObjet').value;
-  const texte  = document.getElementById('msgTexte').value.trim();
-  const btn    = document.getElementById('submitBtn');
-  const succes = document.getElementById('formSuccess');
-  const erreur = document.getElementById('formError');
-
-  // Validation simple
   if (!nom || !email || !texte) return;
 
-  // État chargement
-  btn.textContent = '⏳ Envoi en cours...';
-  btn.disabled    = true;
-  succes.style.display = 'none';
-  erreur.style.display = 'none';
+  btn.textContent = '⏳ Envoi...';
+  btn.disabled = true;
+  ok.style.display = 'none';
+  err.style.display = 'none';
+
+  // Si EmailJS pas encore configuré → message de démonstration
+  if (EMAILJS_PUBLIC_KEY === "ktr41rIBCpRqfpmkX") {
+    setTimeout(() => {
+      ok.style.display = 'block';
+      ok.textContent = '✅ Formulaire fonctionnel ! Configurez EmailJS pour recevoir les vrais messages.';
+      btn.textContent = 'Envoyer →';
+      btn.disabled = false;
+      e.target.reset();
+    }, 800);
+    return;
+  }
 
   try {
     await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      nom:     nom,
-      email:   email,
-      objet:   objet,
-      message: texte,
-      // Ces variables doivent correspondre exactement à votre template EmailJS
+      nom, email, objet, message: texte
     });
-
-    // Succès
-    succes.style.display = 'block';
+    ok.style.display = 'block';
+    ok.textContent = '✅ Message envoyé ! Nous vous répondrons bientôt.';
     e.target.reset();
-
-  } catch (err) {
-    console.error('EmailJS error:', err);
-    erreur.style.display = 'block';
-
+  } catch(error) {
+    console.error(error);
+    err.style.display = 'block';
   } finally {
     btn.textContent = 'Envoyer →';
-    btn.disabled    = false;
+    btn.disabled = false;
   }
 }
+
+// Footer — année automatique ✅
+document.getElementById('yr').textContent = new Date().getFullYear();
 </script>
 </body>
 </html>
